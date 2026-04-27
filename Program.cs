@@ -1,2 +1,2 @@
-﻿using var game = new _.Game1();
+﻿using var game = new FishingMiniGame.Game1();
 game.Run();
