@@ -10,8 +10,9 @@ namespace FishingMiniGame
         private SpriteBatch _spriteBatch;
         
         private Sprite fishingBGSprite;
-        private Sprite fishingBarSprite;
+        private Sprite fishingBarSprite;  // green zone
         private Sprite fishingFishSprite;
+        private Texture2D _whiteTexture;
 
         // Размеры окна
         private const int WindowWidth = 720;
@@ -21,12 +22,18 @@ namespace FishingMiniGame
         
         // Правая полоса прогресса
         private Rectangle progressBarBg;
-        private Rectangle progressBarFill; // Заполненная часть
-        private float progress = 0.5f; // Временное значение для демонстрации (50%)
+        private Rectangle progressBarFill;
+        private float progress = 0.5f; // Для демонстрации
         
-        // Границы для зеленой зоны (не выходить за пределы воды)
-        private int minGreenY;
-        private int maxGreenY;
+        // Позиция зеленой полоски (fishingBar)
+        private Vector2 barPosition;
+        
+        // Границы движения зеленой полоски
+        private float minBarY;
+        private float maxBarY;
+        
+        // Размеры области для рыбки (примерные, подберите под вашу текстуру)
+        private Vector2 fishPosition;
 
         public Game1()
         {
@@ -34,14 +41,16 @@ namespace FishingMiniGame
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             
-            // Устанавливаем размер окна
             _graphics.PreferredBackBufferWidth = WindowWidth;
             _graphics.PreferredBackBufferHeight = WindowHeight;
             _graphics.ApplyChanges();
         }
 
         protected override void Initialize()
-        {   
+        {
+            // Начальная позиция зеленой полоски
+            barPosition = new Vector2(fishingMiniGamePosition.X + 81, fishingMiniGamePosition.Y + 150);
+            
             // Правая полоса прогресса
             const int progressBarWidth = 12;
             const int progressBarHeight = 437;
@@ -55,16 +64,15 @@ namespace FishingMiniGame
                 progressBarHeight
             );
             
-            progressBarFill = new Rectangle(
-                progressBarX,
-                progressBarY + (int)(progressBarHeight * (1 - progress)), // Заполнение сверху вниз
-                progressBarWidth,
-                (int)(progressBarHeight * progress)
-            );
+            UpdateProgressBar();
             
-            // Вычисляем границы для зеленой зоны
-            // minGreenY = waterRect.Y;
-            // maxGreenY = waterRect.Y + waterRect.Height - GreenZoneHeight;
+            minBarY = fishingMiniGamePosition.Y + 150;
+            maxBarY = fishingMiniGamePosition.Y + 150 + 437 - GetBarHeight();
+            
+            fishPosition = new Vector2(
+                fishingMiniGamePosition.X + 81,
+                barPosition.Y + GetBarHeight() / 2
+            );
             
             base.Initialize();
         }
@@ -72,13 +80,33 @@ namespace FishingMiniGame
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            
             Texture2D fishingBGTexture = Content.Load<Texture2D>("Fishing_BG");
             Texture2D fishingBar = Content.Load<Texture2D>("Fishing_Bar");
             Texture2D fishingFish = Content.Load<Texture2D>("Fishing_Fish");
+            
+            _whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
+            _whiteTexture.SetData(new[] { Color.White });
 
             fishingBGSprite = new Sprite(fishingBGTexture, fishingMiniGamePosition);
-            fishingBarSprite = new Sprite(fishingBar, new Vector2(fishingMiniGamePosition.X + 81, fishingMiniGamePosition.Y + 150));
-            fishingFishSprite = new Sprite(fishingFish, new Vector2(fishingMiniGamePosition.X + 81, fishingMiniGamePosition.Y + 75));
+            fishingBarSprite = new Sprite(fishingBar, barPosition);
+            fishingFishSprite = new Sprite(fishingFish, fishPosition);
+        }
+
+        private float GetBarHeight()
+        {
+            return fishingBarSprite?.texture?.Height ?? 80;
+        }
+
+        private void UpdateProgressBar()
+        {
+            int fillHeight = (int)(progressBarBg.Height * progress);
+            progressBarFill = new Rectangle(
+                progressBarBg.X,
+                progressBarBg.Y + progressBarBg.Height - fillHeight,
+                progressBarBg.Width,
+                fillHeight
+            );
         }
 
         protected override void Update(GameTime gameTime)
@@ -87,25 +115,16 @@ namespace FishingMiniGame
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             
-            // Временное обновление прогресса для демонстрации (можно удалить позже)
-            // Просто для анимации, чтобы показать, что полоса работает
+            // Временная анимация прогресса для демонстрации
             progress += 0.005f;
             if (progress > 1) progress = 0;
             UpdateProgressBar();
             
+            // Обновляем позицию спрайтов
+            fishingBarSprite.position = barPosition;
+            fishingFishSprite.position = fishPosition;
+            
             base.Update(gameTime);
-        }
-
-        private void UpdateProgressBar()
-        {
-            // Обновляем заполнение полосы прогресса
-            int fillHeight = (int)(progressBarBg.Height * progress);
-            progressBarFill = new Rectangle(
-                progressBarBg.X,
-                progressBarBg.Y + progressBarBg.Height - fillHeight, // Заполнение снизу вверх
-                progressBarBg.Width,
-                fillHeight
-            );
         }
 
         protected override void Draw(GameTime gameTime)
@@ -113,29 +132,15 @@ namespace FishingMiniGame
             GraphicsDevice.Clear(Color.CornflowerBlue);
             
             _spriteBatch.Begin();
-            Texture2D whiteTexture = CreateWhiteTexture();
-
-            _spriteBatch.Draw(fishingBGSprite.texture, fishingBGSprite.position, Color.White);
-
-            _spriteBatch.Draw(fishingBarSprite.texture, fishingBarSprite.position, Color.White);
-
-            _spriteBatch.Draw(fishingFishSprite.texture, fishingFishSprite.position, Color.White);
             
-            // 4. Рисуем правую полосу прогресса
-            _spriteBatch.Draw(whiteTexture, progressBarFill, Color.Lime);
-
+            _spriteBatch.Draw(fishingBGSprite.texture, fishingBGSprite.position, Color.White);
+            _spriteBatch.Draw(fishingBarSprite.texture, fishingBarSprite.position, Color.White);
+            _spriteBatch.Draw(fishingFishSprite.texture, fishingFishSprite.position, Color.White);
+            _spriteBatch.Draw(_whiteTexture, progressBarFill, Color.Lime);
             
             _spriteBatch.End();
             
             base.Draw(gameTime);
-        }
-        // Вспомогательный метод для создания белой текстуры 1x1
-        // private Texture2D _whiteTexture;
-        private Texture2D CreateWhiteTexture()
-        {
-            Texture2D _whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
-            _whiteTexture.SetData(new[] { Color.White });
-            return _whiteTexture;
         }
     }
 }
