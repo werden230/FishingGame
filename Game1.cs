@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
 
 namespace FishingMiniGame
 {
@@ -23,17 +25,34 @@ namespace FishingMiniGame
         // Правая полоса прогресса
         private Rectangle progressBarBg;
         private Rectangle progressBarFill;
-        private float progress = 0.5f; // Для демонстрации
+        private float progress = 0.5f;
         
-        // Позиция зеленой полоски (fishingBar)
+        // Позиция и физика зеленой полоски
         private Vector2 barPosition;
+        private float barVelocity = 0f;
+        private float targetVelocity = 0f;
         
-        // Границы движения зеленой полоски
+        // Параметры физики
+        private const float ClickForce = -2.5f;
+        private const float HoldAcceleration = -0.3f;
+        private const float Gravity = 1.2f;
+        private const float Damping = 0.95f;
+        
+        // Границы движения
         private float minBarY;
         private float maxBarY;
+        private float barHeight = 108f;
         
-        // Размеры области для рыбки (примерные, подберите под вашу текстуру)
+        // Управление
+        private MouseState previousMouseState;
+        private bool isMouseHeld = false;
+        private float holdTime = 0f;
+        
+        // Рыбка
         private Vector2 fishPosition;
+        private float fishY;
+        private float fishVelocity = 0f;
+        private Random random = new Random();
 
         public Game1()
         {
@@ -48,10 +67,21 @@ namespace FishingMiniGame
 
         protected override void Initialize()
         {
-            // Начальная позиция зеленой полоски
-            barPosition = new Vector2(fishingMiniGamePosition.X + 81, fishingMiniGamePosition.Y + 150);
+            float startY = fishingMiniGamePosition.Y + 150 + (437f / 2) - (barHeight / 2);
+            barPosition = new Vector2(fishingMiniGamePosition.X + 81, startY);
             
-            // Правая полоса прогресса
+            // Определяем границы движения
+            minBarY = fishingMiniGamePosition.Y + 20;
+            maxBarY = fishingMiniGamePosition.Y + 449 - barHeight;
+            
+            // Начальная позиция рыбки
+            fishY = minBarY + random.Next(0, (int)(maxBarY - minBarY));
+            fishPosition = new Vector2(
+                fishingMiniGamePosition.X + 81,
+                fishY
+            );
+            
+            // Настройка полосы прогресса
             const int progressBarWidth = 12;
             const int progressBarHeight = 437;
             int progressBarX = (int)fishingMiniGamePosition.X + 126;
@@ -66,13 +96,7 @@ namespace FishingMiniGame
             
             UpdateProgressBar();
             
-            minBarY = fishingMiniGamePosition.Y + 150;
-            maxBarY = fishingMiniGamePosition.Y + 150 + 437 - GetBarHeight();
-            
-            fishPosition = new Vector2(
-                fishingMiniGamePosition.X + 81,
-                barPosition.Y + GetBarHeight() / 2
-            );
+            previousMouseState = Mouse.GetState();
             
             base.Initialize();
         }
@@ -93,9 +117,127 @@ namespace FishingMiniGame
             fishingFishSprite = new Sprite(fishingFish, fishPosition);
         }
 
-        private float GetBarHeight()
+        private void HandleInput()
         {
-            return fishingBarSprite?.texture?.Height ?? 80;
+            MouseState currentMouseState = Mouse.GetState();
+            bool isLeftButtonPressed = currentMouseState.LeftButton == ButtonState.Pressed;
+            bool wasLeftButtonPressed = previousMouseState.LeftButton == ButtonState.Pressed;
+            
+            // Обработка кликов
+            if (isLeftButtonPressed && !wasLeftButtonPressed)
+            {
+                targetVelocity = ClickForce;
+                holdTime = 0f;
+                isMouseHeld = false;
+            }
+            
+            // Обработка удержания
+            if (isLeftButtonPressed && wasLeftButtonPressed)
+            {
+                if (!isMouseHeld)
+                {
+                    isMouseHeld = true;
+                    holdTime = 0f;
+                }
+                
+                holdTime += 0.016f;
+                float acceleration = HoldAcceleration * MathHelper.Clamp(holdTime * 1.5f, 0.5f, 2.5f);
+                targetVelocity += acceleration;
+                targetVelocity = MathHelper.Max(targetVelocity, -15f);
+            }
+            
+            // Если кнопка отпущена
+            if (!isLeftButtonPressed)
+            {
+                isMouseHeld = false;
+                targetVelocity += Gravity;
+                targetVelocity = MathHelper.Min(targetVelocity, 12f);
+            }
+            
+            // Трение при отсутствии ввода
+            if (!isLeftButtonPressed && Math.Abs(targetVelocity) < 0.5f)
+            {
+                targetVelocity = Gravity * 0.5f;
+            }
+            
+            previousMouseState = currentMouseState;
+        }
+        
+        private void UpdateBarPhysics()
+        {
+            // Плавное изменение скорости
+            barVelocity = barVelocity * Damping + targetVelocity * (1 - Damping);
+            
+            // Обновление позиции
+            barPosition.Y += barVelocity;
+            
+            // Ограничение границами
+            if (barPosition.Y < minBarY)
+            {
+                barPosition.Y = minBarY;
+                if (barVelocity < 0) barVelocity = 0;
+            }
+            
+            if (barPosition.Y > maxBarY)
+            {
+                barPosition.Y = maxBarY;
+                if (barVelocity > 0) barVelocity = 0;
+            }
+            
+            // Затухание целевой скорости
+            if (!isMouseHeld && previousMouseState.LeftButton == ButtonState.Released)
+            {
+                targetVelocity *= 0.98f;
+            }
+            
+            if (fishingBarSprite != null)
+                fishingBarSprite.position = barPosition;
+        }
+        
+        private void UpdateFishMovement()
+        {
+            // Случайное движение рыбки
+            fishVelocity += (float)(random.NextDouble() - 0.5) * 0.5f;
+            fishVelocity = MathHelper.Clamp(fishVelocity, -3f, 3f);
+            
+            fishY += fishVelocity;
+            
+            // Ограничение границами
+            if (fishY < minBarY)
+            {
+                fishY = minBarY;
+                fishVelocity = Math.Abs(fishVelocity) * 0.5f;
+            }
+            
+            if (fishY > maxBarY)
+            {
+                fishY = maxBarY;
+                fishVelocity = -Math.Abs(fishVelocity) * 0.5f;
+            }
+            
+            fishPosition.Y = fishY;
+            if (fishingFishSprite != null)
+                fishingFishSprite.position = fishPosition;
+        }
+        
+        private void UpdateProgressLogic()
+        {
+            // Проверка, находится ли рыбка внутри зеленой полоски
+            bool isFishInside = fishY >= barPosition.Y && 
+                               fishY <= barPosition.Y + barHeight;
+            
+            if (isFishInside)
+            {
+                progress += 0.01f;
+                if (progress > 1f) progress = 1f;
+            }
+            else
+            {
+                progress -= 0.008f;
+                if (progress < 0f) progress = 0f;
+            }
+            
+            UpdateProgressBar();
         }
 
         private void UpdateProgressBar()
@@ -115,14 +257,10 @@ namespace FishingMiniGame
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             
-            // Временная анимация прогресса для демонстрации
-            progress += 0.005f;
-            if (progress > 1) progress = 0;
-            UpdateProgressBar();
-            
-            // Обновляем позицию спрайтов
-            fishingBarSprite.position = barPosition;
-            fishingFishSprite.position = fishPosition;
+            HandleInput();
+            UpdateBarPhysics();
+            UpdateFishMovement();
+            UpdateProgressLogic();
             
             base.Update(gameTime);
         }
