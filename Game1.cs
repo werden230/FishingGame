@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FishingMiniGame.MiniGames;
+using System;
+using System.Collections.Generic;
 
 namespace FishingGame
 {
@@ -9,13 +11,13 @@ namespace FishingGame
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         
-        private Sprite fishingBGSprite;
-        private FishingMiniGameLogic fishingMiniGame;  // ← Изменено здесь
-        private Texture2D whiteTexture;
+        private IGameState _currentState;
+        private Dictionary<Type, IGameState> _states;
         
         private const int WindowWidth = 720;
         private const int WindowHeight = 1280;
-        private Vector2 fishingMiniGamePosition = new Vector2(100, 50);
+        
+        public GraphicsDevice GraphicsDeviceInstance => GraphicsDevice;
 
         public Game1()
         {
@@ -28,40 +30,38 @@ namespace FishingGame
             _graphics.ApplyChanges();
         }
 
-        protected override void Initialize()
-        {
-            base.Initialize();
-        }
-
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             
-            Texture2D fishingBGTexture = Content.Load<Texture2D>("Fishing_BG");
-            Texture2D fishingBar = Content.Load<Texture2D>("Fishing_Bar");
-            Texture2D fishingFish = Content.Load<Texture2D>("Fishing_Fish");
+            // Инициализируем состояния
+            _states = new Dictionary<Type, IGameState>
+            {
+                { typeof(MainGameState), new MainGameState(this) }
+            };
             
-            whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
-            whiteTexture.SetData(new[] { Color.White });
-            
-            fishingBGSprite = new Sprite(fishingBGTexture, fishingMiniGamePosition);
-            
-            // Создаём мини-игру - используем правильное имя класса
-            fishingMiniGame = new FishingMiniGameLogic(  // ← Изменено здесь
-                fishingMiniGamePosition,
-                fishingBar,
-                fishingFish,
-                whiteTexture
-            );
+            // Устанавливаем начальное состояние
+            ChangeState<MainGameState>();
+        }
+        
+        public void ChangeState<T>() where T : IGameState
+        {
+            if (_states.TryGetValue(typeof(T), out var newState))
+            {
+                ChangeState(newState);
+            }
+        }
+        
+        public void ChangeState(IGameState newState)
+        {
+            _currentState?.Exit();
+            _currentState = newState;
+            _currentState?.Enter();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (fishingMiniGame != null)
-            {
-                fishingMiniGame.Update(gameTime);
-            }
-            
+            _currentState?.Update(gameTime);
             base.Update(gameTime);
         }
 
@@ -70,10 +70,7 @@ namespace FishingGame
             GraphicsDevice.Clear(Color.CornflowerBlue);
             
             _spriteBatch.Begin();
-            
-            _spriteBatch.Draw(fishingBGSprite.texture, fishingBGSprite.position, Color.White);
-            fishingMiniGame?.Draw(_spriteBatch);
-            
+            _currentState?.Draw(_spriteBatch);
             _spriteBatch.End();
             
             base.Draw(gameTime);

@@ -7,8 +7,9 @@ using FishingMiniGame.Utilities;
 
 namespace FishingMiniGame.MiniGames
 {
-    public class FishingMiniGameLogic  // ← Изменено имя класса
+    public class FishingMiniGameLogic
     {
+        private FishingBG fishingBG;
         private FishingBar fishingBar;
         private Fish fish;
         private ProgressBar progressBar;
@@ -28,8 +29,10 @@ namespace FishingMiniGame.MiniGames
         private const float ProgressLossRate = 0.008f;
         
         public bool IsGameActive { get; private set; } = true;
+
+        public bool DidPlayerWin { get; private set; } = false;
         
-        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, Texture2D whiteTexture)
+        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, Texture2D fishingBGTexture, Texture2D whiteTexture)
         {
             gamePosition = position;
             
@@ -38,11 +41,13 @@ namespace FishingMiniGame.MiniGames
             minY = position.Y + 20;
             maxY = position.Y + 449 - barHeight;
             
-            // Начальная позиция (центр)
+            // Начальная позиция
             float startY = maxY;
             Vector2 barStartPosition = new Vector2(position.X + 81, startY);
             
             // Создаём сущности
+            fishingBG = new FishingBG(fishingBGTexture, position);
+
             fishingBar = new FishingBar(barTexture, barStartPosition, minY, maxY);
             
             Vector2 fishStartPosition = new Vector2(position.X + 81, startY);
@@ -107,17 +112,20 @@ namespace FishingMiniGame.MiniGames
             if (progressBar.IsComplete())
             {
                 IsGameActive = false;
+                DidPlayerWin = true;
                 // Победа!
             }
             else if (progressBar.IsEmpty())
             {
                 IsGameActive = false;
+                DidPlayerWin = false;
                 // Поражение - рыба сорвалась
             }
         }
         
         public void Draw(SpriteBatch spriteBatch)
         {
+            fishingBG.Draw(spriteBatch);
             fishingBar.Draw(spriteBatch);
             fish.Draw(spriteBatch);
             progressBar.Draw(spriteBatch);
