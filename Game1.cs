@@ -1,7 +1,6 @@
+// Game1.cs
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using FishingMiniGame.MiniGames;
-using System;
 using System.Collections.Generic;
 
 namespace FishingGame
@@ -12,12 +11,17 @@ namespace FishingGame
         private SpriteBatch _spriteBatch;
         
         private IGameState _currentState;
-        private Dictionary<Type, IGameState> _states;
+        private Dictionary<System.Type, IGameState> _states;
+        private Inventory _inventory;
+        private Texture2D _whiteTexture;
         
         private const int WindowWidth = 720;
         private const int WindowHeight = 1280;
         
-        public GraphicsDevice GraphicsDeviceInstance => GraphicsDevice;
+        // Публичные свойства
+        public new GraphicsDevice GraphicsDevice => base.GraphicsDevice;
+        public Inventory Inventory => _inventory;
+        public Texture2D WhiteTexture => _whiteTexture;
 
         public Game1()
         {
@@ -28,14 +32,19 @@ namespace FishingGame
             _graphics.PreferredBackBufferWidth = WindowWidth;
             _graphics.PreferredBackBufferHeight = WindowHeight;
             _graphics.ApplyChanges();
+            
+            _inventory = new Inventory();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+                        
+            _whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
+            _whiteTexture.SetData(new[] { Color.White });
             
             // Инициализируем состояния
-            _states = new Dictionary<Type, IGameState>
+            _states = new Dictionary<System.Type, IGameState>
             {
                 { typeof(MainGameState), new MainGameState(this) }
             };
