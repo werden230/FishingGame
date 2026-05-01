@@ -1,14 +1,17 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FishingMiniGame.Observer;
 using FishingGame.FishingMiniGame;
 using FishingGame.FishingMiniGame.Expressions;
-using FishingGame.FishSystem;
+using System.Collections.Generic;
 using System;
 
 namespace FishingMiniGame.Entities
 {
-    public class FishEntitie
+    public class FishEntitie : ISubject
     {
+        private List<IObserver> observers = new List<IObserver>();
+        
         public Texture2D Texture { get; set; }
         public Vector2 Position { get; private set; }
         public float Y => Position.Y;
@@ -20,11 +23,13 @@ namespace FishingMiniGame.Entities
         private float _minY;
         private float _maxY;
         private float _velocityY;
+        private float previousY;
         
         public FishEntitie(Texture2D texture, Vector2 startPosition, float minY, float maxY, string movingPattern)
         {
             Texture = texture;
             Position = startPosition;
+            previousY = startPosition.Y;
             _minY = minY;
             _maxY = maxY;
             _time = 0;
@@ -40,9 +45,9 @@ namespace FishingMiniGame.Entities
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             _time += deltaTime;
+            previousY = Position.Y;
             
             float targetOffset = _movementExpression.Interpret(_time, deltaTime, Position.Y, _minY, _maxY);
-            
             _offsetY = MathHelper.Lerp(_offsetY, targetOffset, 0.1f);
             
             float newY = _baseY + _offsetY;
@@ -62,6 +67,31 @@ namespace FishingMiniGame.Entities
             }
             
             Position = new Vector2(Position.X, newY);
+            
+            if (previousY != Position.Y)
+            {
+                Notify(GameEvent.FishPositionChanged, Position.Y);
+            }
+        }
+        
+        public void Attach(IObserver observer)
+        {
+            if (!observers.Contains(observer))
+                observers.Add(observer);
+        }
+        
+        public void Detach(IObserver observer)
+        {
+            if (observers.Contains(observer))
+                observers.Remove(observer);
+        }
+        
+        public void Notify(GameEvent gameEvent, object data = null)
+        {
+            foreach (var observer in observers)
+            {
+                observer.OnNotify(gameEvent, data);
+            }
         }
         
         public void Draw(SpriteBatch spriteBatch)

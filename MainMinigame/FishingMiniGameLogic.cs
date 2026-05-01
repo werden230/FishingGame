@@ -1,8 +1,9 @@
+// FishingMiniGameLogic.cs
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using FishingMiniGame;
 using FishingMiniGame.Entities;
 using FishingMiniGame.Physics;
+using FishingMiniGame.Observer;
 using FishingMiniGame.Utilities;
 
 namespace FishingMiniGame.MiniGames
@@ -19,20 +20,17 @@ namespace FishingMiniGame.MiniGames
         private Vector2 gamePosition;
         private float minY;
         private float maxY;
+        private bool wasContact;
         
         // Параметры физики
         private const float ClickForce = -2.5f;
         private const float HoldAcceleration = -0.3f;
         
-        // Параметры прогресса
-        private const float ProgressGainRate = 0.005f;
-        private const float ProgressLossRate = 0.008f;
-        
         public bool IsGameActive { get; private set; } = true;
-
         public bool DidPlayerWin { get; private set; } = false;
         
-        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, Texture2D fishingBGTexture, Texture2D whiteTexture, string movingPattern)
+        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, 
+            Texture2D fishingBGTexture, Texture2D whiteTexture, string movingPattern)
         {
             gamePosition = position;
             
@@ -47,7 +45,6 @@ namespace FishingMiniGame.MiniGames
             
             // Создаём сущности
             fishingBG = new FishingBG(fishingBGTexture, position);
-
             fishingBar = new FishingBar(barTexture, barStartPosition, minY, maxY);
             
             Vector2 fishStartPosition = new Vector2(position.X + 81, startY);
@@ -62,11 +59,17 @@ namespace FishingMiniGame.MiniGames
             );
             progressBar = new ProgressBar(whiteTexture, progressBarRect);
             
+            // Подписываем ProgressBar на события
+            fishingBar.Attach(progressBar);
+            fish.Attach(progressBar);
+            
             // Физика
             barPhysics = new BarPhysics(startY, minY, maxY);
             
             // Ввод
             input = new InputHelper();
+            
+            wasContact = false;
         }
         
         public void Update(GameTime gameTime)
@@ -98,28 +101,45 @@ namespace FishingMiniGame.MiniGames
             // Обновление рыбки
             fish.Update(gameTime);
             
-            // Обновление прогресса
-            if (fishingBar.Contains(fish.Y))
+            // Проверка контакта между полоской и рыбкой
+            bool isContact = fishingBar.Contains(fish.Y);
+            progressBar.UpdateContact(isContact);
+
+            if (isContact && !wasContact)
             {
-                progressBar.Increase(ProgressGainRate);
+                // Начало контакта
+                fishingBar.Notify(GameEvent.BarFishContact);
+                fish.Notify(GameEvent.BarFishContact);
             }
-            else
+            else if (isContact && wasContact)
             {
-                progressBar.Decrease(ProgressLossRate);
+                // Продолжение контакта - каждый кадр
+                fishingBar.Notify(GameEvent.BarFishContactUpdate);
+                fish.Notify(GameEvent.BarFishContactUpdate);
             }
+            else if (!isContact && wasContact)
+            {
+                // Потеря контакта
+                fishingBar.Notify(GameEvent.BarFishLost);
+                fish.Notify(GameEvent.BarFishLost);
+            }
+
+            wasContact = isContact;
             
             // Проверка условий победы/поражения
             if (progressBar.IsComplete())
             {
                 IsGameActive = false;
                 DidPlayerWin = true;
-                // Победа!
+                fishingBar.Notify(GameEvent.GameWin);
+                fish.Notify(GameEvent.GameWin);
             }
             else if (progressBar.IsEmpty())
             {
                 IsGameActive = false;
                 DidPlayerWin = false;
-                // Поражение - рыба сорвалась
+                fishingBar.Notify(GameEvent.GameLose);
+                fish.Notify(GameEvent.GameLose);
             }
         }
         
@@ -134,18 +154,15 @@ namespace FishingMiniGame.MiniGames
         public void Reset()
         {
             IsGameActive = true;
+            DidPlayerWin = false;
+            wasContact = false;
+            
             float startY = minY + (maxY - minY) / 2;
             barPhysics = new BarPhysics(startY, minY, maxY);
             fishingBar.UpdatePosition(barPhysics.Position);
             
             // Сброс прогресса
-            Rectangle progressBarRect = new Rectangle(
-                (int)gamePosition.X + 126,
-                (int)gamePosition.Y + 15,
-                12,
-                437
-            );
-            progressBar = new ProgressBar(progressBar.GetType().GetField("whiteTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(progressBar) as Texture2D, progressBarRect);
+            progressBar.Reset();
         }
     }
 }

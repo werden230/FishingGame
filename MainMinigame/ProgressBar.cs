@@ -1,57 +1,95 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FishingMiniGame.Observer;
+using System;
 
-namespace FishingMiniGame.Entities
+namespace FishingMiniGame
 {
-    public class ProgressBar
+    public class ProgressBar : IObserver
     {
-        private Rectangle background;
-        private Rectangle fill;
-        private Texture2D whiteTexture;
-        private float progress = 0.5f;
+        private Texture2D texture;
+        private Rectangle bounds;
+        private float progress;
         
-        public float Progress 
-        { 
-            get => progress;
-            set => progress = MathHelper.Clamp(value, 0, 1);
-        }
+        private const float ProgressGainRate = 0.002f;
+        private const float ProgressLossRate = 0.004f;
         
-        public ProgressBar(Texture2D whiteTexture, Rectangle backgroundRect)
+        public ProgressBar(Texture2D whiteTexture, Rectangle bounds)
         {
-            this.whiteTexture = whiteTexture;
-            this.background = backgroundRect;
-            UpdateFill();
+            this.texture = whiteTexture;
+            this.bounds = bounds;
+            this.progress = 0.5f;
         }
         
         public void Increase(float amount)
         {
-            Progress += amount;
-            UpdateFill();
+            progress += amount;
+            if (progress > 1f) progress = 1f;
         }
         
         public void Decrease(float amount)
         {
-            Progress -= amount;
-            UpdateFill();
+            progress -= amount;
+            if (progress < 0f) progress = 0f;
         }
         
-        private void UpdateFill()
+        public bool IsComplete()
         {
-            int fillHeight = (int)(background.Height * progress);
-            fill = new Rectangle(
-                background.X,
-                background.Y + background.Height - fillHeight,
-                background.Width,
-                fillHeight
-            );
+            return progress >= 1f;
+        }
+        
+        public bool IsEmpty()
+        {
+            return progress <= 0f;
+        }
+        
+        public void Reset()
+        {
+            progress = 0f;
+        }
+        
+        public void OnNotify(GameEvent gameEvent, object data = null)
+        {
+            switch (gameEvent)
+            {
+                case GameEvent.BarFishContact:
+                case GameEvent.BarFishContactUpdate:
+                    Increase(ProgressGainRate);
+                    break;
+                    
+                case GameEvent.BarFishLost:
+                    Decrease(ProgressLossRate);
+                    break;
+            }
+        }
+
+        public void UpdateContact(bool isInContact)
+        {
+            if (isInContact)
+            {
+                Increase(ProgressGainRate);
+            }
+            else
+            {
+                Decrease(ProgressLossRate);
+            }
         }
         
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(whiteTexture, fill, Color.Lime);
+            int filledHeight = (int)(bounds.Height * progress);
+            int emptyHeight = bounds.Height - filledHeight;
+            
+            if (filledHeight > 0)
+            {
+                Rectangle filledRect = new Rectangle(
+                    bounds.X,
+                    bounds.Y + bounds.Height - filledHeight,
+                    bounds.Width,
+                    filledHeight
+                );
+                spriteBatch.Draw(texture, filledRect, Color.Lime);
+            }
         }
-        
-        public bool IsComplete() => progress >= 1f;
-        public bool IsEmpty() => progress <= 0f;
     }
 }
