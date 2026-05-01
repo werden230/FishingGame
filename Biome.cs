@@ -25,11 +25,6 @@ namespace FishingGame
             return FishFactory.CreateRandomFish();
         }
         
-        public Fish GetTrophyFish()
-        {
-            return FishFactory.CreateTrophyFish();
-        }
-        
         public Fish GetFishByRarity(FishRarity rarity)
         {
             return FishFactory.CreateFishByRarity(rarity);

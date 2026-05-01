@@ -11,7 +11,7 @@ namespace FishingMiniGame.MiniGames
     {
         private FishingBG fishingBG;
         private FishingBar fishingBar;
-        private Fish fish;
+        private FishEntitie fish;
         private ProgressBar progressBar;
         private BarPhysics barPhysics;
         private InputHelper input;
@@ -32,7 +32,7 @@ namespace FishingMiniGame.MiniGames
 
         public bool DidPlayerWin { get; private set; } = false;
         
-        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, Texture2D fishingBGTexture, Texture2D whiteTexture)
+        public FishingMiniGameLogic(Vector2 position, Texture2D barTexture, Texture2D fishTexture, Texture2D fishingBGTexture, Texture2D whiteTexture, string movingPattern)
         {
             gamePosition = position;
             
@@ -42,7 +42,7 @@ namespace FishingMiniGame.MiniGames
             maxY = position.Y + 449 - barHeight;
             
             // Начальная позиция
-            float startY = maxY;
+            float startY = maxY/2;
             Vector2 barStartPosition = new Vector2(position.X + 81, startY);
             
             // Создаём сущности
@@ -51,7 +51,7 @@ namespace FishingMiniGame.MiniGames
             fishingBar = new FishingBar(barTexture, barStartPosition, minY, maxY);
             
             Vector2 fishStartPosition = new Vector2(position.X + 81, startY);
-            fish = new Fish(fishTexture, fishStartPosition, minY, maxY);
+            fish = new FishEntitie(fishTexture, fishStartPosition, minY, maxY, movingPattern);
             
             // Настройка прогресс-бара
             Rectangle progressBarRect = new Rectangle(
@@ -96,7 +96,7 @@ namespace FishingMiniGame.MiniGames
             fishingBar.UpdatePosition(barPhysics.Position);
             
             // Обновление рыбки
-            fish.Update();
+            fish.Update(gameTime);
             
             // Обновление прогресса
             if (fishingBar.Contains(fish.Y))

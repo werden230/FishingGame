@@ -8,10 +8,10 @@ namespace FishingGame.FishSystem
         IFishBuilder SetPrice(int price);
         IFishBuilder SetTexture(Texture2D texture);
         IFishBuilder SetRarity(FishRarity rarity);
-        IFishBuilder SetSize(int minSize, int maxSize);
+        IFishBuilder SetSize(int size);
         IFishBuilder SetWeight(float weight);
         IFishBuilder SetExperience(int exp);
-        // IFishBuilder AddSpecialProperty(string key, object value);
+        IFishBuilder SetMovementPattern(string pattern);
         Fish Build();
     }
     
@@ -60,10 +60,9 @@ namespace FishingGame.FishSystem
             return this;
         }
         
-        public IFishBuilder SetSize(int minSize, int maxSize)
+        public IFishBuilder SetSize(int size)
         {
-            _fish.MinimumSize = minSize;
-            _fish.MaximumSize = maxSize;
+            _fish.Size = size;
             return this;
         }
         
@@ -78,12 +77,12 @@ namespace FishingGame.FishSystem
             _fish.ExperienceReward = exp;
             return this;
         }
-        
-        // public IFishBuilder AddSpecialProperty(string key, object value)
-        // {
-        //     _fish.SpecialProperties[key] = value;
-        //     return this;
-        // }
+
+        public IFishBuilder SetMovementPattern(string pattern)
+        {
+            _fish.MovementPattern = pattern;
+            return this;
+        }
         
         public Fish Build()
         {
@@ -116,29 +115,16 @@ namespace FishingGame.FishSystem
             _builder = builder;
         }
         
-        public Fish ConstructBasicFish(string name, FishRarity rarity)
+        public Fish ConstructBasicFish(string name, FishRarity rarity, string pattern)
         {
             return _builder
                 .SetName(name)
                 .SetRarity(rarity)
                 .SetPrice(GetPriceByRarity(rarity))
-                .SetSize(10, 50)
+                .SetSize(10)
                 .SetWeight(1.0f)
                 .SetExperience(GetExperienceByRarity(rarity))
-                .Build();
-        }
-        
-        public Fish ConstructTrophyFish(string name, FishRarity rarity)
-        {
-            return _builder
-                .SetName(name)
-                .SetRarity(rarity)
-                .SetPrice(GetPriceByRarity(rarity) * 3)
-                .SetSize(50, 200)
-                .SetWeight(10.0f)
-                .SetExperience(GetExperienceByRarity(rarity) * 2)
-                // .AddSpecialProperty("IsTrophy", true)
-                // .AddSpecialProperty("Ribbon", "Gold")
+                .SetMovementPattern(pattern)
                 .Build();
         }
         

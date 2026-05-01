@@ -9,7 +9,6 @@ namespace FishingGame.FishSystem
     {
         Fish CreateRandomFish();
         Fish CreateFishByRarity(FishRarity rarity);
-        Fish CreateTrophyFish();
         List<Fish> GetAvailableFish();
     }
     
@@ -31,16 +30,15 @@ namespace FishingGame.FishSystem
             
             _fishTemplates = new List<Fish>
             {
-                director.ConstructBasicFish("Clownfish", FishRarity.Common),
-                director.ConstructBasicFish("Blue Tang", FishRarity.Common),
-                director.ConstructBasicFish("Salmon", FishRarity.Uncommon),
-                director.ConstructBasicFish("Tuna", FishRarity.Uncommon),
-                director.ConstructBasicFish("Swordfish", FishRarity.Rare),
-                director.ConstructBasicFish("Marlin", FishRarity.Rare),
-                director.ConstructBasicFish("Shark", FishRarity.Epic),
-                director.ConstructBasicFish("Octopus", FishRarity.Epic),
-                director.ConstructBasicFish("Kraken", FishRarity.Legendary),
-                director.ConstructBasicFish("Leviathan", FishRarity.Legendary)
+                director.ConstructBasicFish("Tuna", FishRarity.Common, "SIN(2, 30)"),
+                director.ConstructBasicFish("Anchovy", FishRarity.Common, "COS(4, 35)"),
+                director.ConstructBasicFish("Sardine", FishRarity.Uncommon, "JUMP(1, 70)"),
+                director.ConstructBasicFish("Pufferfish", FishRarity.Uncommon, "SIN(3, 40) + JUMP(1, 40)"),
+                director.ConstructBasicFish("Red Mullet", FishRarity.Rare, "SIN(4, 100)"),
+                director.ConstructBasicFish("Herring", FishRarity.Rare, "COS(2, 50) + RANDOM(100, 1)"),
+                director.ConstructBasicFish("Albacore", FishRarity.Epic, "SIN(1.5, 45) + JUMP(0.5, 50)"),
+                director.ConstructBasicFish("Eel", FishRarity.Epic, "SIN(1.5, 80) + JUMP(5, 0.4)"),
+                director.ConstructBasicFish("Octopus", FishRarity.Legendary, "SIN(5, 80) + JUMP(2, 0.6)")
             };
         }
         
@@ -57,7 +55,7 @@ namespace FishingGame.FishSystem
                 return CreateFishByRarity(FishRarity.Rare);
             else if (roll < 50) // 30% на необычную
                 return CreateFishByRarity(FishRarity.Uncommon);
-            else // 50% на обычную
+            else 
                 return CreateFishByRarity(FishRarity.Common);
         }
         
@@ -75,22 +73,11 @@ namespace FishingGame.FishSystem
                 .SetName(template.Name)
                 .SetRarity(template.Rarity)
                 .SetPrice(template.Price + _random.Next(-10, 20))
-                .SetSize(template.MinimumSize + _random.Next(-5, 15), 
-                        template.MaximumSize + _random.Next(-10, 30))
+                .SetSize(template.Size + _random.Next(-5, 15))
                 .SetWeight(template.Weight + (float)_random.NextDouble() * 2 - 1)
-                .SetExperience(template.ExperienceReward + _random.Next(-2, 5))
+                .SetExperience(template.ExperienceReward)
+                .SetMovementPattern(template.MovementPattern)
                 .Build();
-        }
-        
-        public Fish CreateTrophyFish()
-        {
-            var builder = new FishBuilder();
-            var director = new FishDirector(builder);
-            
-            var rareFish = _fishTemplates.Where(f => f.Rarity >= FishRarity.Rare).ToList();
-            var selectedFish = rareFish[_random.Next(rareFish.Count)];
-            
-            return director.ConstructTrophyFish($"Golden {selectedFish.Name}", selectedFish.Rarity);
         }
         
         public List<Fish> GetAvailableFish()
@@ -117,16 +104,15 @@ namespace FishingGame.FishSystem
             
             _fishTemplates = new List<Fish>
             {
-                director.ConstructBasicFish("Perch", FishRarity.Common),
-                director.ConstructBasicFish("Roach", FishRarity.Common),
-                director.ConstructBasicFish("Trout", FishRarity.Uncommon),
-                director.ConstructBasicFish("Grayling", FishRarity.Uncommon),
-                director.ConstructBasicFish("Pike", FishRarity.Rare),
-                director.ConstructBasicFish("Zander", FishRarity.Rare),
-                director.ConstructBasicFish("Catfish", FishRarity.Epic),
-                director.ConstructBasicFish("Sturgeon", FishRarity.Epic),
-                director.ConstructBasicFish("River Monster", FishRarity.Legendary),
-                director.ConstructBasicFish("Golden Trout", FishRarity.Legendary)
+                director.ConstructBasicFish("Salmon", FishRarity.Common, "SIN(2, 30)"),
+                director.ConstructBasicFish("Sunfish", FishRarity.Common, "COS(4, 35)"),
+                director.ConstructBasicFish("Tiger Trout", FishRarity.Uncommon, "JUMP(1, 70)"),
+                director.ConstructBasicFish("Dorado", FishRarity.Uncommon, "SIN(3, 40) + JUMP(1, 40)"),
+                director.ConstructBasicFish("Bream", FishRarity.Rare, "SIN(4, 100)"),
+                director.ConstructBasicFish("Shad", FishRarity.Rare, "COS(2, 50) + RANDOM(100, 1)"),
+                director.ConstructBasicFish("Smallmouth Bass", FishRarity.Epic, "SIN(1.5, 45) + JUMP(0.5, 50)"),
+                director.ConstructBasicFish("Pike", FishRarity.Epic, "SIN(1.5, 80) + JUMP(5, 0.4)"),
+                director.ConstructBasicFish("Midnight Carp", FishRarity.Legendary, "SIN(5, 80) + JUMP(2, 0.6)")
             };
         }
         
@@ -155,26 +141,18 @@ namespace FishingGame.FishSystem
             var template = fishOfRarity[_random.Next(fishOfRarity.Count)];
             
             var builder = new FishBuilder();
+
+            int size = template.Size + _random.Next(-3, 10);
+
             return builder
                 .SetName(template.Name)
                 .SetRarity(template.Rarity)
-                .SetPrice(template.Price + _random.Next(-5, 15))
-                .SetSize(template.MinimumSize + _random.Next(-3, 10), 
-                        template.MaximumSize + _random.Next(-5, 20))
+                .SetPrice(template.Price*(size/10))
+                .SetSize(size)
                 .SetWeight(template.Weight + (float)_random.NextDouble() * 1.5f - 0.75f)
-                .SetExperience(template.ExperienceReward + _random.Next(-2, 4))
+                .SetExperience(template.ExperienceReward)
+                .SetMovementPattern(template.MovementPattern)
                 .Build();
-        }
-        
-        public Fish CreateTrophyFish()
-        {
-            var builder = new FishBuilder();
-            var director = new FishDirector(builder);
-            
-            var rareFish = _fishTemplates.Where(f => f.Rarity >= FishRarity.Rare).ToList();
-            var selectedFish = rareFish[_random.Next(rareFish.Count)];
-            
-            return director.ConstructTrophyFish($"Ancient {selectedFish.Name}", selectedFish.Rarity);
         }
         
         public List<Fish> GetAvailableFish()
@@ -201,16 +179,15 @@ namespace FishingGame.FishSystem
             
             _fishTemplates = new List<Fish>
             {
-                director.ConstructBasicFish("Carp", FishRarity.Common),
-                director.ConstructBasicFish("Crucian", FishRarity.Common),
-                director.ConstructBasicFish("Bass", FishRarity.Uncommon),
-                director.ConstructBasicFish("Sunfish", FishRarity.Uncommon),
-                director.ConstructBasicFish("Walleye", FishRarity.Rare),
-                director.ConstructBasicFish("Musky", FishRarity.Rare),
-                director.ConstructBasicFish("Lake Trout", FishRarity.Epic),
-                director.ConstructBasicFish("Whitefish", FishRarity.Epic),
-                director.ConstructBasicFish("Nessie", FishRarity.Legendary),
-                director.ConstructBasicFish("Lake Monster", FishRarity.Legendary)
+                director.ConstructBasicFish("Largemouth Bass", FishRarity.Common, "SIN(2, 30)"),
+                director.ConstructBasicFish("Sturgeon", FishRarity.Common, "COS(4, 35)"),
+                director.ConstructBasicFish("Rainbow Trout", FishRarity.Uncommon, "JUMP(1, 70)"),
+                director.ConstructBasicFish("Walleye", FishRarity.Uncommon, "SIN(3, 40) + JUMP(1, 40)"),
+                director.ConstructBasicFish("Carp", FishRarity.Rare, "SIN(4, 100)"),
+                director.ConstructBasicFish("Perch", FishRarity.Rare, "COS(2, 50) + RANDOM(100, 1)"),
+                director.ConstructBasicFish("Bullhead", FishRarity.Epic, "SIN(1.5, 45) + JUMP(0.5, 50)"),
+                director.ConstructBasicFish("Chub", FishRarity.Epic, "SIN(1.5, 80) + JUMP(5, 0.4)"),
+                director.ConstructBasicFish("Lingcod", FishRarity.Legendary, "SIN(5, 80) + JUMP(2, 0.6)")
             };
         }
         
@@ -239,26 +216,18 @@ namespace FishingGame.FishSystem
             var template = fishOfRarity[_random.Next(fishOfRarity.Count)];
             
             var builder = new FishBuilder();
+
+            int size = template.Size + _random.Next(-4, 12);
+
             return builder
                 .SetName(template.Name)
                 .SetRarity(template.Rarity)
-                .SetPrice(template.Price + _random.Next(-8, 12))
-                .SetSize(template.MinimumSize + _random.Next(-4, 12), 
-                        template.MaximumSize + _random.Next(-8, 25))
+                .SetPrice(template.Price*(size/10))
+                .SetSize(size)
                 .SetWeight(template.Weight + (float)_random.NextDouble() * 2 - 1)
-                .SetExperience(template.ExperienceReward + _random.Next(-1, 5))
+                .SetExperience(template.ExperienceReward)
+                .SetMovementPattern(template.MovementPattern)
                 .Build();
-        }
-        
-        public Fish CreateTrophyFish()
-        {
-            var builder = new FishBuilder();
-            var director = new FishDirector(builder);
-            
-            var rareFish = _fishTemplates.Where(f => f.Rarity >= FishRarity.Rare).ToList();
-            var selectedFish = rareFish[_random.Next(rareFish.Count)];
-            
-            return director.ConstructTrophyFish($"Legendary {selectedFish.Name}", selectedFish.Rarity);
         }
         
         public List<Fish> GetAvailableFish()

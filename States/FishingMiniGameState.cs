@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FishingMiniGame.MiniGames;
 using FishingGame.FishSystem;
+using System;
 
 namespace FishingGame
 {
@@ -19,6 +20,7 @@ namespace FishingGame
         {
             _game = game;
             _currentBiome = biome;
+            _rewardFish = _currentBiome.GetRandomFish();
         }
         
         public override void Enter()
@@ -33,7 +35,8 @@ namespace FishingGame
                 fishingBar,
                 fishingFish,
                 fishingBGTexture,
-                _game.WhiteTexture
+                _game.WhiteTexture,
+                _rewardFish.MovementPattern
             );
             
             _showReward = false;
@@ -60,7 +63,6 @@ namespace FishingGame
                 // Получаем награду в зависимости от результата
                 if (_fishingMiniGame.DidPlayerWin)
                 {
-                    _rewardFish = _currentBiome.GetRandomFish();
                     _game.Inventory.AddFish(_rewardFish);
                     _showReward = true;
                     _rewardDisplayTimer = 3.0f; // Показываем награду 3 секунды
@@ -78,11 +80,6 @@ namespace FishingGame
             spriteBatch.Draw(_currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
             if (_showReward)
             {
-                // Рисуем экран награды
-                // spriteBatch.Draw(_game.WhiteTexture, 
-                //     new Rectangle(0, 0, 720, 1280), 
-                //     new Color(0, 0, 0, 200));
-                
                 SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
                 string rewardText = $"You caught a {_rewardFish.Name}! ({_rewardFish.Rarity})";
                 Vector2 textSize = font.MeasureString(rewardText);
