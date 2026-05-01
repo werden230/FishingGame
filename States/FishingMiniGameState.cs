@@ -80,22 +80,31 @@ namespace FishingGame
             spriteBatch.Draw(_currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
             if (_showReward)
             {
-                SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
-                string rewardText = $"You caught a {_rewardFish.Name}! ({_rewardFish.Rarity})";
-                Vector2 textSize = font.MeasureString(rewardText);
-                
-                spriteBatch.DrawString(font, rewardText,
-                    new Vector2(360 - textSize.X / 2, 640 - textSize.Y / 2),
-                    Color.Gold);
-                
-                spriteBatch.DrawString(font, $"Value: ${_rewardFish.Price}",
-                    new Vector2(360 - 50, 680),
-                    Color.White);
+                Vector2 position = new Vector2(310, 300);
+                string fishName = _rewardFish.Name;
+                _rewardFish.Texture = _game.Content.Load<Texture2D>($"fish/{_rewardFish.Name}");
+                DrawReward(spriteBatch, position, fishName, _rewardFish.Texture);
             }
             else
             {
                 _fishingMiniGame?.Draw(spriteBatch);
             }
+        }
+
+        private void DrawReward(SpriteBatch spriteBatch, Vector2 position, string fishName, Texture2D fishTexture)
+        {
+            int sizeX = 100;
+            int sizeY = 75;
+            SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
+            Vector2 textSize = font.MeasureString(fishName);
+            spriteBatch.Draw(_game.WhiteTexture, new Rectangle((int)position.X, (int)position.Y, sizeX, sizeY), Color.White);
+            
+            spriteBatch.DrawString(font, fishName,
+                    new Vector2(position.X + (sizeX-textSize.X)/2, position.Y),
+                    Color.Black);
+
+            spriteBatch.Draw(_rewardFish.Texture, new Rectangle((int)position.X+2, (int)position.Y+sizeY-50, 48,  48), Color.White);
+
         }
         
         public override void Exit()
