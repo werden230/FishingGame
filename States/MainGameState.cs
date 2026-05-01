@@ -22,10 +22,10 @@ namespace FishingGame
         private Rectangle _nextButton;
         private Rectangle _prevButton;
         
-        public MainGameState(Game1 game)
+        public MainGameState(Game1 game, BiomeType currentBiomeType=0)
         {
             _game = game;
-            _currentBiomeIndex = 0;
+            _currentBiomeIndex = (int)currentBiomeType;
 
             _nextButtonTexture = _game.Content.Load<Texture2D>("NextButton");
             _prevButtonTexture = _game.Content.Load<Texture2D>("PrevButton");
@@ -91,9 +91,6 @@ namespace FishingGame
 
             spriteBatch.Draw(_nextButtonTexture, _nextButton, Color.White);
             spriteBatch.Draw(_prevButtonTexture, _prevButton, Color.White);
-
-            // DrawButton(spriteBatch, _nextButton, "Next");
-            // DrawButton(spriteBatch, _prevButton, "Previous");
             
             spriteBatch.DrawString(_font, "Press SPACE to fish!", 
                 new Vector2(250, 700), Color.Black);
@@ -102,13 +99,6 @@ namespace FishingGame
             DrawFishCollection(spriteBatch);
         }
         
-        // private void DrawButton(SpriteBatch spriteBatch, Rectangle rect, string text)
-        // {
-        //     Color color = Color.Gold;
-        //     spriteBatch.Draw(_game.WhiteTexture, rect, color);
-        //     spriteBatch.DrawString(_font, text, 
-        //         new Vector2(rect.X + 10, rect.Y + 10), Color.Black);
-        // }
         
         private void DrawInventory(SpriteBatch spriteBatch)
         {

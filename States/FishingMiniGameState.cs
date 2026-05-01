@@ -10,7 +10,7 @@ namespace FishingGame
         private Game1 _game;
         private FishingMiniGameLogic _fishingMiniGame;
         private Biome _currentBiome;
-        private Vector2 _position = new Vector2(100, 50);
+        private Vector2 _position = new Vector2(250, 250);
         private Fish _rewardFish;
         private float _rewardDisplayTimer;
         private bool _showReward;
@@ -34,7 +34,6 @@ namespace FishingGame
                 fishingFish,
                 fishingBGTexture,
                 _game.WhiteTexture
-                // _currentBiome  // Передаем биом в мини-игру
             );
             
             _showReward = false;
@@ -48,7 +47,7 @@ namespace FishingGame
                 _rewardDisplayTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (_rewardDisplayTimer <= 0)
                 {
-                    _game.ChangeState(new MainGameState(_game));
+                    _game.ChangeState(new MainGameState(_game, _currentBiome.BiomeType));
                 }
                 return;
             }
@@ -76,12 +75,13 @@ namespace FishingGame
         
         public override void Draw(SpriteBatch spriteBatch)
         {
+            spriteBatch.Draw(_currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
             if (_showReward)
             {
                 // Рисуем экран награды
-                spriteBatch.Draw(_game.WhiteTexture, 
-                    new Rectangle(0, 0, 720, 1280), 
-                    new Color(0, 0, 0, 200));
+                // spriteBatch.Draw(_game.WhiteTexture, 
+                //     new Rectangle(0, 0, 720, 1280), 
+                //     new Color(0, 0, 0, 200));
                 
                 SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
                 string rewardText = $"You caught a {_rewardFish.Name}! ({_rewardFish.Rarity})";
