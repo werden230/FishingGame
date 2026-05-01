@@ -68,6 +68,18 @@
 /processorParam:TextureFormat=Color
 /build:lake_day_bg.png
 
+#begin NextButton.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:NextButton.png
+
 #begin ocean_day_bg.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -79,6 +91,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:ocean_day_bg.png
+
+#begin PrevButton.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:PrevButton.png
 
 #begin river_day_bg.png
 /importer:TextureImporter

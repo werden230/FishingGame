@@ -15,6 +15,10 @@ namespace FishingGame
         private SpriteFont _font;
         
         private bool IsMousePressed = false;
+
+        private Texture2D _nextButtonTexture;
+        private Texture2D _prevButtonTexture;
+
         private Rectangle _nextButton;
         private Rectangle _prevButton;
         
@@ -23,8 +27,11 @@ namespace FishingGame
             _game = game;
             _currentBiomeIndex = 0;
 
-            _nextButton = new Rectangle(470, 600, 180, 50);
-            _prevButton = new Rectangle(50, 600, 180, 50);
+            _nextButtonTexture = _game.Content.Load<Texture2D>("NextButton");
+            _prevButtonTexture = _game.Content.Load<Texture2D>("PrevButton");
+
+            _nextButton = new Rectangle(720-50-81, 600, 81, 75);
+            _prevButton = new Rectangle(50, 600, 81, 75);
         }
         
         public override void Enter()
@@ -81,9 +88,12 @@ namespace FishingGame
         {
             Biome currentBiome = _biomes[_currentBiomeIndex];
             spriteBatch.Draw(currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
-            
-            DrawButton(spriteBatch, _nextButton, "Next");
-            DrawButton(spriteBatch, _prevButton, "Previous");
+
+            spriteBatch.Draw(_nextButtonTexture, _nextButton, Color.White);
+            spriteBatch.Draw(_prevButtonTexture, _prevButton, Color.White);
+
+            // DrawButton(spriteBatch, _nextButton, "Next");
+            // DrawButton(spriteBatch, _prevButton, "Previous");
             
             spriteBatch.DrawString(_font, "Press SPACE to fish!", 
                 new Vector2(250, 700), Color.Black);
@@ -92,13 +102,13 @@ namespace FishingGame
             DrawFishCollection(spriteBatch);
         }
         
-        private void DrawButton(SpriteBatch spriteBatch, Rectangle rect, string text)
-        {
-            Color color = Color.Gold;
-            spriteBatch.Draw(_game.WhiteTexture, rect, color);
-            spriteBatch.DrawString(_font, text, 
-                new Vector2(rect.X + 10, rect.Y + 10), Color.Black);
-        }
+        // private void DrawButton(SpriteBatch spriteBatch, Rectangle rect, string text)
+        // {
+        //     Color color = Color.Gold;
+        //     spriteBatch.Draw(_game.WhiteTexture, rect, color);
+        //     spriteBatch.DrawString(_font, text, 
+        //         new Vector2(rect.X + 10, rect.Y + 10), Color.Black);
+        // }
         
         private void DrawInventory(SpriteBatch spriteBatch)
         {
