@@ -43,8 +43,8 @@ namespace FishingGame
             _whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
             _whiteTexture.SetData(new[] { Color.White });
             
-            // Инициализируем состояния
-            _states = new Dictionary<System.Type, IGameState>
+            SeedTestFish();
+
             {
                 { typeof(MainGameState), new MainGameState(this) }
             };
@@ -83,6 +83,29 @@ namespace FishingGame
             _spriteBatch.End();
             
             base.Draw(gameTime);
+        }
+
+        private void SeedTestFish()
+        {
+            if (!SeedTestFishOnStart)
+            {
+                return;
+            }
+
+            BiomeType[] biomeTypes =
+            {
+                BiomeType.Ocean,
+                BiomeType.River,
+                BiomeType.Lake
+            };
+
+            for (int i = 0; i < TestFishCount; i++)
+            {
+                BiomeType biomeType = biomeTypes[_random.Next(biomeTypes.Length)];
+                IFishFactory factory = FishFactoryProvider.GetFactory(biomeType);
+                Fish fish = factory.CreateRandomFish();
+                _inventory.AddFish(fish);
+            }
         }
     }
 }
