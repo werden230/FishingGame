@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FishingGame.FishSystem
 {
-    public class Fish
+    public class Fish : FishingGame.IInventoryComponent
     {
         public string Name { get; set; }
         public int Price { get; set; }
@@ -22,6 +22,16 @@ namespace FishingGame.FishSystem
         public override string ToString()
         {
             return $"{Name} ({Rarity}) - ${Price} - {Weight}kg";
+        }
+
+        public int GetTotalPrice()
+        {
+            return Price;
+        }
+
+        public int GetFishCount()
+        {
+            return 1;
         }
     }
     
