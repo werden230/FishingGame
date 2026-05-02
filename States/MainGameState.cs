@@ -16,12 +16,14 @@ namespace FishingGame
         private SpriteFont _font;
         private Texture2D _inventoryTexture;
 
-        private bool _isMousePressed;
+        private bool _isMousePressed = false;
         private bool _isInventoryOpen;
         private bool _wasInventoryTogglePressed;
 
-        private readonly Rectangle _nextButton;
-        private readonly Rectangle _prevButton;
+        private Rectangle _nextButton;
+        private Rectangle _prevButton;
+        private Texture2D _nextButtonTexture;
+        private Texture2D _prevButtonTexture;
         private readonly Rectangle _sellAllButton;
 
         private const int InventoryColumns = 12;
@@ -32,15 +34,18 @@ namespace FishingGame
         private const int InventorySlotSize = 49;
         private const int InventorySlotHorizontalSpacing = -4;
         private const int InventorySlotVerticalSpacing = 0;
-
-        public MainGameState(Game1 game)
+        
+        public MainGameState(Game1 game, BiomeType currentBiomeType=0)
         {
             _game = game;
-            _currentBiomeIndex = 0;
+            _currentBiomeIndex = (int)currentBiomeType;
 
-            _nextButton = new Rectangle(470, 600, 180, 50);
-            _prevButton = new Rectangle(50, 600, 180, 50);
-            _sellAllButton = new Rectangle(500, 1060, 150, 50);
+            _sellAllButton = new Rectangle(300, 760, 150, 50);
+            _nextButtonTexture = _game.Content.Load<Texture2D>("NextButton");
+            _prevButtonTexture = _game.Content.Load<Texture2D>("PrevButton");
+
+            _nextButton = new Rectangle(720-50-81, 600, 81, 75);
+            _prevButton = new Rectangle(50, 600, 81, 75);
         }
 
         public override void Enter()
@@ -111,10 +116,11 @@ namespace FishingGame
             Biome currentBiome = _biomes[_currentBiomeIndex];
             spriteBatch.Draw(currentBiome.BackgroundTexture, new Rectangle(0, 0, 720, 1280), Color.White);
 
-            DrawButton(spriteBatch, _nextButton, "Next");
-            DrawButton(spriteBatch, _prevButton, "Previous");
+            spriteBatch.Draw(_nextButtonTexture, _nextButton, Color.White);
+            spriteBatch.Draw(_prevButtonTexture, _prevButton, Color.White);
 
-            spriteBatch.DrawString(_font, "Press SPACE to fish", new Vector2(255, 700), Color.Black);
+            spriteBatch.DrawString(_font, "Press SPACE to fish!", 
+                new Vector2(250, 700), Color.Black);
             spriteBatch.DrawString(_font, "Press I to open inventory", new Vector2(220, 740), Color.Black);
             spriteBatch.DrawString(_font, $"Money: {_game.Money}g", new Vector2(50, 50), Color.DarkGreen);
 

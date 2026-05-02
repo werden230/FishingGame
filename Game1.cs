@@ -22,7 +22,7 @@ namespace FishingGame
         private const int WindowWidth = 720;
         private const int WindowHeight = 1280;
         private static readonly bool SeedTestFishOnStart = true;
-        private const int TestFishCount = 96;
+        private const int TestFishCount = 25;
 
         // Публичные свойства
         public new GraphicsDevice GraphicsDevice => base.GraphicsDevice;

@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FishingMiniGame.MiniGames;
 using FishingGame.FishSystem;
+using System;
 
 namespace FishingGame
 {
@@ -10,7 +11,7 @@ namespace FishingGame
         private Game1 _game;
         private FishingMiniGameLogic _fishingMiniGame;
         private Biome _currentBiome;
-        private Vector2 _position = new Vector2(100, 50);
+        private Vector2 _position = new Vector2(250, 250);
         private Fish _rewardFish;
         private float _rewardDisplayTimer;
         private bool _showReward;
@@ -19,6 +20,7 @@ namespace FishingGame
         {
             _game = game;
             _currentBiome = biome;
+            _rewardFish = _currentBiome.GetRandomFish();
         }
         
         public override void Enter()
@@ -33,8 +35,8 @@ namespace FishingGame
                 fishingBar,
                 fishingFish,
                 fishingBGTexture,
-                _game.WhiteTexture
-                // _currentBiome  // Передаем биом в мини-игру
+                _game.WhiteTexture,
+                _rewardFish.MovementPattern
             );
             
             _showReward = false;
@@ -48,7 +50,7 @@ namespace FishingGame
                 _rewardDisplayTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (_rewardDisplayTimer <= 0)
                 {
-                    _game.ChangeState(new MainGameState(_game));
+                    _game.ChangeState(new MainGameState(_game, _currentBiome.BiomeType));
                 }
                 return;
             }
@@ -61,7 +63,6 @@ namespace FishingGame
                 // Получаем награду в зависимости от результата
                 if (_fishingMiniGame.DidPlayerWin)
                 {
-                    _rewardFish = _currentBiome.GetRandomFish();
                     _game.Inventory.AddFish(_rewardFish);
                     _showReward = true;
                     _rewardDisplayTimer = 3.0f; // Показываем награду 3 секунды
@@ -76,29 +77,34 @@ namespace FishingGame
         
         public override void Draw(SpriteBatch spriteBatch)
         {
+            spriteBatch.Draw(_currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
             if (_showReward)
             {
-                // Рисуем экран награды
-                spriteBatch.Draw(_game.WhiteTexture, 
-                    new Rectangle(0, 0, 720, 1280), 
-                    new Color(0, 0, 0, 200));
-                
-                SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
-                string rewardText = $"You caught a {_rewardFish.Name}! ({_rewardFish.Rarity})";
-                Vector2 textSize = font.MeasureString(rewardText);
-                
-                spriteBatch.DrawString(font, rewardText,
-                    new Vector2(360 - textSize.X / 2, 640 - textSize.Y / 2),
-                    Color.Gold);
-                
-                spriteBatch.DrawString(font, $"Value: ${_rewardFish.Price}",
-                    new Vector2(360 - 50, 680),
-                    Color.White);
+                Vector2 position = new Vector2(310, 300);
+                string fishName = _rewardFish.Name;
+                _rewardFish.Texture = _game.Content.Load<Texture2D>($"fish/{_rewardFish.Name}");
+                DrawReward(spriteBatch, position, fishName, _rewardFish.Texture);
             }
             else
             {
                 _fishingMiniGame?.Draw(spriteBatch);
             }
+        }
+
+        private void DrawReward(SpriteBatch spriteBatch, Vector2 position, string fishName, Texture2D fishTexture)
+        {
+            int sizeX = 100;
+            int sizeY = 75;
+            SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
+            Vector2 textSize = font.MeasureString(fishName);
+            spriteBatch.Draw(_game.WhiteTexture, new Rectangle((int)position.X, (int)position.Y, sizeX, sizeY), Color.White);
+            
+            spriteBatch.DrawString(font, fishName,
+                    new Vector2(position.X + (sizeX-textSize.X)/2, position.Y),
+                    Color.Black);
+
+            spriteBatch.Draw(_rewardFish.Texture, new Rectangle((int)position.X+2, (int)position.Y+sizeY-50, 48,  48), Color.White);
+
         }
         
         public override void Exit()
