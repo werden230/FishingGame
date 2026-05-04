@@ -239,19 +239,29 @@ namespace FishingGame.FishSystem
     // Фабрика провайдер для получения нужной фабрики
     public static class FishFactoryProvider
     {
+        private static readonly IGameLogger Logger = new FileGameLogger(AppContext.BaseDirectory);
+
         public static IFishFactory GetFactory(BiomeType biomeType)
         {
+            IFishFactory concreteFactory;
+
             switch (biomeType)
             {
                 case BiomeType.Ocean:
-                    return new OceanFishFactory();
+                    concreteFactory = new OceanFishFactory();
+                    break;
                 case BiomeType.River:
-                    return new RiverFishFactory();
+                    concreteFactory = new RiverFishFactory();
+                    break;
                 case BiomeType.Lake:
-                    return new LakeFishFactory();
+                    concreteFactory = new LakeFishFactory();
+                    break;
                 default:
-                    return new OceanFishFactory();
+                    concreteFactory = new OceanFishFactory();
+                    break;
             }
+
+            return new LoggingFishFactoryProxy(concreteFactory, Logger, biomeType);
         }
     }
     
