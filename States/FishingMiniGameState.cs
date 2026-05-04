@@ -3,15 +3,17 @@ using Microsoft.Xna.Framework.Graphics;
 using FishingMiniGame.MiniGames;
 using FishingGame.FishSystem;
 using System;
+using System.Reflection.Metadata.Ecma335;
 
 namespace FishingGame
 {
     public class FishingMiniGameState : GameState
     {
         private Game1 _game;
+        private Texture2D _playerTexture;
         private FishingMiniGameLogic _fishingMiniGame;
         private Biome _currentBiome;
-        private Vector2 _position = new Vector2(250, 250);
+        private Vector2 _position = new Vector2(400, 350);
         private Fish _rewardFish;
         private float _rewardDisplayTimer;
         private bool _showReward;
@@ -29,6 +31,7 @@ namespace FishingGame
             Texture2D fishingBar = _game.Content.Load<Texture2D>("Fishing_Bar");
             Texture2D fishingFish = _game.Content.Load<Texture2D>("Fishing_Fish");
             Texture2D fishingBGTexture = _game.Content.Load<Texture2D>("Fishing_BG");
+            _playerTexture = _game.Content.Load<Texture2D>("player");
 
             _fishingMiniGame = new FishingMiniGameLogic(
                 _position,
@@ -78,9 +81,11 @@ namespace FishingGame
         public override void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(_currentBiome.BackgroundTexture, new Rectangle(0, 0, 720,  1280), Color.White);
+            spriteBatch.Draw(_playerTexture, new Vector2((720-_playerTexture.Width)/2, 640-_playerTexture.Height+30), Color.White);
+
             if (_showReward)
             {
-                Vector2 position = new Vector2(310, 300);
+                Vector2 position = new Vector2(260, 410);
                 string fishName = _rewardFish.Name;
                 _rewardFish.Texture = _game.Content.Load<Texture2D>($"fish/{_rewardFish.Name}");
                 DrawReward(spriteBatch, position, fishName, _rewardFish.Texture);
@@ -93,17 +98,18 @@ namespace FishingGame
 
         private void DrawReward(SpriteBatch spriteBatch, Vector2 position, string fishName, Texture2D fishTexture)
         {
-            int sizeX = 100;
-            int sizeY = 75;
             SpriteFont font = _game.Content.Load<SpriteFont>("DefaultFont");
+            Texture2D _rewardBlobTexture = _game.Content.Load<Texture2D>("fishing_blob");
+            int sizeX = (int)(_rewardBlobTexture.Width/1.5);
+            int sizeY = (int)(_rewardBlobTexture.Height/1.5);
             Vector2 textSize = font.MeasureString(fishName);
-            spriteBatch.Draw(_game.WhiteTexture, new Rectangle((int)position.X, (int)position.Y, sizeX, sizeY), Color.White);
+            spriteBatch.Draw(_rewardBlobTexture, new Rectangle((int)position.X, (int)position.Y, sizeX, sizeY), Color.White);
             
             spriteBatch.DrawString(font, fishName,
-                    new Vector2(position.X + (sizeX-textSize.X)/2, position.Y),
+                    new Vector2(position.X + (sizeX-textSize.X)/2, position.Y+10),
                     Color.Black);
 
-            spriteBatch.Draw(_rewardFish.Texture, new Rectangle((int)position.X+2, (int)position.Y+sizeY-50, 48,  48), Color.White);
+            spriteBatch.Draw(_rewardFish.Texture, new Rectangle((int)position.X+21, (int)position.Y+sizeY-85, 48,  48), Color.White);
 
         }
         

@@ -14,6 +14,8 @@ namespace FishingGame
         private List<Biome> _biomes;
         private int _currentBiomeIndex;
         private SpriteFont _font;
+        private Texture2D _playerTexture;
+        private Texture2D _moneyTexture;
         private Texture2D _inventoryTexture;
 
         private bool _isMousePressed = false;
@@ -22,14 +24,16 @@ namespace FishingGame
 
         private Rectangle _nextButton;
         private Rectangle _prevButton;
+        private Rectangle _sellAllButton;
+        private Rectangle _money;
         private Texture2D _nextButtonTexture;
         private Texture2D _prevButtonTexture;
-        private readonly Rectangle _sellAllButton;
+        private Texture2D _sellAllButtonTexture;
 
         private const int InventoryColumns = 12;
         private const int InventoryRows = 3;
         private static readonly Point InventoryPanelSize = new Point(580, 200);
-        private static readonly Point InventoryPanelPosition = new Point(20, 820);
+        private static readonly Point InventoryPanelPosition = new Point(70, 820);
         private static readonly Point InventoryInnerOrigin = new Point(20, 32);
         private const int InventorySlotSize = 49;
         private const int InventorySlotHorizontalSpacing = -4;
@@ -39,13 +43,17 @@ namespace FishingGame
         {
             _game = game;
             _currentBiomeIndex = (int)currentBiomeType;
+            _playerTexture = _game.Content.Load<Texture2D>("player");
+            _moneyTexture = _game.Content.Load<Texture2D>("money_ui");
 
-            _sellAllButton = new Rectangle(300, 760, 150, 50);
-            _nextButtonTexture = _game.Content.Load<Texture2D>("NextButton");
-            _prevButtonTexture = _game.Content.Load<Texture2D>("PrevButton");
-
+            _sellAllButton = new Rectangle(InventoryPanelSize.X+InventoryPanelPosition.X, InventoryPanelSize.Y+InventoryPanelPosition.Y-75, 81, 75);
             _nextButton = new Rectangle(720-50-81, 600, 81, 75);
             _prevButton = new Rectangle(50, 600, 81, 75);
+            _money = new Rectangle(0, 0, (int)(_moneyTexture.Width/1.5), (int)(_moneyTexture.Height/1.5));
+
+            _sellAllButtonTexture = _game.Content.Load<Texture2D>("ButtonSell");
+            _nextButtonTexture = _game.Content.Load<Texture2D>("NextButton");
+            _prevButtonTexture = _game.Content.Load<Texture2D>("PrevButton");
         }
 
         public override void Enter()
@@ -116,13 +124,16 @@ namespace FishingGame
             Biome currentBiome = _biomes[_currentBiomeIndex];
             spriteBatch.Draw(currentBiome.BackgroundTexture, new Rectangle(0, 0, 720, 1280), Color.White);
 
+            spriteBatch.Draw(_playerTexture, new Vector2((720-_playerTexture.Width)/2, 640-_playerTexture.Height+30), Color.White);
+
             spriteBatch.Draw(_nextButtonTexture, _nextButton, Color.White);
             spriteBatch.Draw(_prevButtonTexture, _prevButton, Color.White);
 
-            spriteBatch.DrawString(_font, "Press SPACE to fish!", 
-                new Vector2(250, 700), Color.Black);
-            spriteBatch.DrawString(_font, "Press I to open inventory", new Vector2(220, 740), Color.Black);
-            spriteBatch.DrawString(_font, $"Money: {_game.Money}g", new Vector2(50, 50), Color.DarkGreen);
+            // spriteBatch.DrawString(_font, "Press SPACE to fish!", 
+            //     new Vector2(250, 700), Color.Black);
+            // spriteBatch.DrawString(_font, "Press I to open inventory", new Vector2(220, 740), Color.Black);
+            spriteBatch.Draw(_moneyTexture, _money, Color.White);
+            spriteBatch.DrawString(_font, $"{_game.Money}", new Vector2(30, 13), new Color(98, 35, 24));
 
             if (_isInventoryOpen)
             {
@@ -147,7 +158,7 @@ namespace FishingGame
             spriteBatch.Draw(_inventoryTexture, panelRect, Color.White);
             spriteBatch.DrawString(_font, $"Fish: {_game.Inventory.TotalFish}", new Vector2(50, 1068), Color.Black);
             spriteBatch.DrawString(_font, $"Value: {_game.Inventory.GetTotalPrice()}g", new Vector2(220, 1068), Color.Black);
-            DrawButton(spriteBatch, _sellAllButton, "Sell all");
+            spriteBatch.Draw(_sellAllButtonTexture, _sellAllButton, Color.White);
             DrawInventoryGrid(spriteBatch, panelRect);
         }
 
@@ -172,7 +183,7 @@ namespace FishingGame
                     slotRect.Width - 16,
                     slotRect.Height - 16);
 
-                spriteBatch.Draw(_game.WhiteTexture, itemRect, Color.White);
+                spriteBatch.Draw(stack.Fish[0].Texture, itemRect, Color.White);
 
                 string countText = $"x{stack.GetFishCount()}";
                 Vector2 countSize = _font.MeasureString(countText);

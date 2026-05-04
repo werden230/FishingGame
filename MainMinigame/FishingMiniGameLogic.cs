@@ -1,4 +1,3 @@
-// FishingMiniGameLogic.cs
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using FishingMiniGame.Entities;

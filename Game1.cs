@@ -1,4 +1,3 @@
-// Game1.cs
 using System;
 using System.Collections.Generic;
 using FishingGame.FishSystem;
@@ -21,7 +20,7 @@ namespace FishingGame
 
         private const int WindowWidth = 720;
         private const int WindowHeight = 1280;
-        private static readonly bool SeedTestFishOnStart = true;
+        private static readonly bool SeedTestFishOnStart = false;
         private const int TestFishCount = 25;
 
         // Публичные свойства
